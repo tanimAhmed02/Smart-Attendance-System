@@ -3,61 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live Attendance Dashboard</title>
-
+  <title>Instructor Dashboard</title>
   <style>
-    body {
-      font-family: Arial;
-      background: #f4f6f9;
-      padding: 30px;
-    }
-
-    .container {
-      max-width: 700px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 15px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-
-    th, td {
-      padding: 10px;
-      border: 1px solid #ddd;
-      text-align: center;
-    }
-
-    th {
-      background: #2563eb;
-      color: white;
-    }
-
-    #count {
-      font-size: 18px;
-      text-align: center;
-      margin-top: 10px;
-      font-weight: bold;
-    }
+    body { font-family: Arial; background: #f4f6f9; padding: 30px; }
+    .container { max-width: 700px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h2 { text-align: center; margin-bottom: 15px; }
+    button { padding: 12px 20px; background: #16a34a; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+    img { display: block; margin: 20px auto; max-width: 300px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { padding: 10px; border: 1px solid #ddd; text-align: center; }
+    th { background: #2563eb; color: white; }
+    #count { font-size: 18px; text-align: center; margin-top: 10px; font-weight: bold; }
   </style>
 </head>
-
 <body>
 
 <div class="container">
-  <h2>Live Attendance Dashboard</h2>
+  <h2>Instructor Dashboard</h2>
+  
+  <!-- QR Generation -->
+  <button onclick="generateQR()">Generate Attendance QR</button>
+  <div id="qrOutput"></div>
+  
+  <!-- Live Attendance Table -->
   <div id="count">Loading...</div>
-
   <table>
     <thead>
       <tr>
@@ -71,31 +40,47 @@
 </div>
 
 <script>
-async function loadAttendance() {
-  const res = await fetch("http://localhost:3000/attendance");
-  const data = await res.json();
-
-  document.getElementById("count").innerText =
-    `Total Present: ${data.length}`;
-
-  const tbody = document.getElementById("attendanceList");
-  tbody.innerHTML = "";
-
-  data.forEach((s, i) => {
-    const row = `
-      <tr>
-        <td>${i + 1}</td>
-        <td>${s.student}</td>
-        <td>${s.time}</td>
-      </tr>
+  let currentSessionId = null;
+  
+  // Generate QR
+  async function generateQR() {
+    const res = await fetch("http://localhost:3000/generate", { method: "POST" });
+    const data = await res.json();
+    currentSessionId = data.sessionId;
+  
+    document.getElementById("qrOutput").innerHTML = `
+      <p>Session ID: ${data.sessionId}</p>
+      <img src="${data.qr}" />
     `;
-    tbody.innerHTML += row;
-  });
-}
-
-setInterval(loadAttendance, 2000);
-loadAttendance();
-</script>
-
-</body>
-</html>
+  
+    // Start updating the attendance table right after generating QR
+    loadAttendance();
+  }
+  
+  // Load Live Attendance
+  async function loadAttendance() {
+    if (!currentSessionId) return; // only show table for current session
+    const res = await fetch(`http://localhost:3000/attendance/${currentSessionId}`);
+    const data = await res.json();
+  
+    document.getElementById("count").innerText = `Total Present: ${data.length}`;
+    const tbody = document.getElementById("attendanceList");
+    tbody.innerHTML = "";
+  
+    // Populate table
+    data.forEach((s, i) => {
+      const row = `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${s.student}</td>
+          <td>${s.time}</td>
+        </tr>
+      `;
+      tbody.innerHTML += row;
+    });
+  }
+  
+  // Poll attendance every 2 seconds
+  setInterval(loadAttendance, 2000);
+  </script>
+  

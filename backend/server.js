@@ -7,51 +7,69 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-let sessions = {};
-let attendance = {};
+// Store sessions and attendance
+let sessions = {};      // { sessionId: { expiresAt: timestamp } }
+let attendance = {};    // { sessionId: [{ student, time }] }
 
+// Test endpoint
 app.get("/", (req, res) => {
   res.send("Smart Attendance Backend Running");
 });
 
-// Generate QR session
+// Generate new QR session
 app.post("/generate", async (req, res) => {
   const sessionId = uuidv4();
-  const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
+  const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes expiry
 
+  // Save session and empty attendance array
   sessions[sessionId] = { expiresAt };
   attendance[sessionId] = [];
 
+  // Generate QR code for session ID
   const qr = await QRCode.toDataURL(sessionId);
 
   res.json({ sessionId, qr });
 });
 
-// Student scan
+// Student scans QR
 app.post("/scan", (req, res) => {
   const { sessionId, student } = req.body;
 
-  if (!sessions[sessionId])
+  if (!sessions[sessionId]) {
     return res.status(400).json({ message: "Invalid session" });
+  }
 
-  if (Date.now() > sessions[sessionId].expiresAt)
+  if (Date.now() > sessions[sessionId].expiresAt) {
     return res.status(400).json({ message: "Session expired" });
+  }
 
-  if (attendance[sessionId].includes(student))
+  // Prevent duplicate entries for this session
+  const alreadyMarked = attendance[sessionId].find(
+    (s) => s.student === student
+  );
+
+  if (alreadyMarked) {
     return res.status(400).json({ message: "Already marked" });
+  }
 
-  attendance[sessionId].push(student);
+  // Record attendance with timestamp
+  const time = new Date().toLocaleTimeString();
+  attendance[sessionId].push({ student, time });
 
   res.json({ message: "Attendance recorded" });
 });
 
-// Get attendance
+// Get attendance for a specific session
 app.get("/attendance/:sessionId", (req, res) => {
-  res.json(attendance[req.params.sessionId] || []);
+  const sessionId = req.params.sessionId;
+  res.json(attendance[sessionId] || []);
 });
 
-app.listen(3000, () => console.log("Server running on port 3000"));
+// Optional: get all sessions attendance (for debugging)
 app.get("/attendance", (req, res) => {
-    res.json(attendance);
+  res.json(attendance);
 });
-  
+
+// Start server
+const PORT = 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
