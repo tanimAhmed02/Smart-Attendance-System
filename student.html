@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Student Scan</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body { font-family: Arial; text-align:center; background:#f4f6f9; padding:40px;}
+    #reader { width:300px; margin:auto;}
+  </style>
+</head>
+<body>
+
+<h1>Scan Attendance QR</h1>
+<div id="reader"></div>
+<p id="result"></p>
+
+<script>
+function onScanSuccess(decodedText) {
+  document.getElementById("result").innerText =
+    "Attendance marked for session: " + decodedText;
+}
+
+new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 })
+  .render(onScanSuccess);
+</script>
+
+</body>
+</html>
