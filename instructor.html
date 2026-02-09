@@ -1,27 +1,100 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Instructor Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Attendance Dashboard</title>
+
   <style>
-    body { font-family: Arial; background:#f9fafb; text-align:center; padding:40px;}
-    button { padding:12px 20px; background:#16a34a; color:white; border:none; border-radius:5px; font-size:16px;}
-    #qrcode { margin-top:20px;}
+    body {
+      font-family: Arial;
+      background: #f4f6f9;
+      padding: 30px;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
+    th {
+      background: #2563eb;
+      color: white;
+    }
+
+    #count {
+      font-size: 18px;
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+    }
   </style>
 </head>
+
 <body>
 
-<h1>Instructor Dashboard</h1>
-<button onclick="generateQR()">Generate Attendance QR</button>
+<div class="container">
+  <h2>Live Attendance Dashboard</h2>
+  <div id="count">Loading...</div>
 
-<div id="qrcode"></div>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Student</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody id="attendanceList"></tbody>
+  </table>
+</div>
 
 <script>
-function generateQR(){
-  document.getElementById("qrcode").innerHTML="";
-  let sessionID = "SESSION-" + Math.floor(Math.random()*100000);
-  new QRCode(document.getElementById("qrcode"), sessionID);
+async function loadAttendance() {
+  const res = await fetch("http://localhost:3000/attendance");
+  const data = await res.json();
+
+  document.getElementById("count").innerText =
+    `Total Present: ${data.length}`;
+
+  const tbody = document.getElementById("attendanceList");
+  tbody.innerHTML = "";
+
+  data.forEach((s, i) => {
+    const row = `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${s.student}</td>
+        <td>${s.time}</td>
+      </tr>
+    `;
+    tbody.innerHTML += row;
+  });
 }
+
+setInterval(loadAttendance, 2000);
+loadAttendance();
 </script>
 
 </body>

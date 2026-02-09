@@ -1,26 +1,63 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Student Scan</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Attendance Scan</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
-    body { font-family: Arial; text-align:center; background:#f4f6f9; padding:40px;}
-    #reader { width:300px; margin:auto;}
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #eef2ff, #f8fafc);
+      text-align: center;
+      padding: 40px;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 400px;
+      margin: auto;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    #reader {
+     width: 350px;
+     max-width: 90%;
+     margin: auto;
+    }   
+    #result {
+      margin-top: 15px;
+      font-size: 16px;
+      font-weight: bold;
+      color: green;
+    }
   </style>
 </head>
 <body>
 
-<h1>Scan Attendance QR</h1>
-<div id="reader"></div>
-<p id="result"></p>
+  <div class="card">
+    <h2>Scan Attendance QR</h2>
+    <div id="reader"></div>
+    <p id="result"></p>
+  </div>
 
 <script>
 function onScanSuccess(decodedText) {
-  document.getElementById("result").innerText =
-    "Attendance marked for session: " + decodedText;
+  fetch("http://localhost:3000/scan", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      sessionId: decodedText,
+      student: "student1"
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("result").innerText = data.message;
+  });
 }
 
-new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 })
+new Html5QrcodeScanner("reader", { fps: 10, qrbox: 230 })
   .render(onScanSuccess);
 </script>
 
