@@ -4,29 +4,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Instructor Dashboard</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
-    body { font-family: Arial; background: #f4f6f9; padding: 30px; }
-    .container { max-width: 700px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    h2 { text-align: center; margin-bottom: 15px; }
-    button { padding: 12px 20px; background: #16a34a; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
-    img { display: block; margin: 20px auto; max-width: 300px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { padding: 10px; border: 1px solid #ddd; text-align: center; }
-    th { background: #2563eb; color: white; }
-    #count { font-size: 18px; text-align: center; margin-top: 10px; font-weight: bold; }
+    body { font-family: 'Segoe UI', sans-serif; background:#f4f6f9; padding:30px; margin:0; }
+    .container { max-width: 800px; margin:auto; background:white; padding:25px; border-radius:15px; box-shadow:0 10px 25px rgba(0,0,0,0.15); }
+    h2 { text-align:center; margin-bottom:20px; }
+    .card { background:white; padding:20px; border-radius:15px; margin-bottom:20px; box-shadow:0 5px 15px rgba(0,0,0,0.15); text-align:center; }
+    button { padding:12px 25px; background:#16a34a; color:white; border:none; border-radius:10px; cursor:pointer; font-size:16px; transition:0.3s; }
+    button:hover { background:#15803d; }
+    img { margin-top:15px; border-radius:10px; }
+    table { width:100%; border-collapse:collapse; margin-top:15px; }
+    th, td { padding:10px; border:1px solid #ddd; text-align:center; }
+    th { background:#2563eb; color:white; }
+    #count { font-size:18px; font-weight:bold; margin-top:10px; text-align:center; }
   </style>
 </head>
 <body>
 
 <div class="container">
   <h2>Instructor Dashboard</h2>
-  
-  <!-- QR Generation -->
-  <button onclick="generateQR()">Generate Attendance QR</button>
-  <div id="qrOutput"></div>
-  
-  <!-- Live Attendance Table -->
-  <div id="count">Loading...</div>
+
+  <div class="card">
+    <button onclick="generateQR()">Generate Attendance QR</button>
+    <p id="qrMsg"></p>
+    <div id="qrOutput"></div>
+  </div>
+
+  <div id="count">Total Present: 0</div>
   <table>
     <thead>
       <tr>
@@ -40,47 +44,34 @@
 </div>
 
 <script>
-  let currentSessionId = null;
-  
-  // Generate QR
-  async function generateQR() {
-    const res = await fetch("http://localhost:3000/generate", { method: "POST" });
-    const data = await res.json();
-    currentSessionId = data.sessionId;
-  
-    document.getElementById("qrOutput").innerHTML = `
-      <p>Session ID: ${data.sessionId}</p>
-      <img src="${data.qr}" />
-    `;
-  
-    // Start updating the attendance table right after generating QR
-    loadAttendance();
-  }
-  
-  // Load Live Attendance
-  async function loadAttendance() {
-    if (!currentSessionId) return; // only show table for current session
-    const res = await fetch(`http://localhost:3000/attendance/${currentSessionId}`);
-    const data = await res.json();
-  
-    document.getElementById("count").innerText = `Total Present: ${data.length}`;
-    const tbody = document.getElementById("attendanceList");
-    tbody.innerHTML = "";
-  
-    // Populate table
-    data.forEach((s, i) => {
-      const row = `
-        <tr>
-          <td>${i + 1}</td>
-          <td>${s.student}</td>
-          <td>${s.time}</td>
-        </tr>
-      `;
-      tbody.innerHTML += row;
-    });
-  }
-  
-  // Poll attendance every 2 seconds
-  setInterval(loadAttendance, 2000);
-  </script>
-  
+let currentSessionId = null;
+
+async function generateQR() {
+  const res = await fetch("http://localhost:3000/generate", { method:"POST" });
+  const data = await res.json();
+  currentSessionId = data.sessionId;
+
+  document.getElementById("qrOutput").innerHTML = `<p>Session ID: ${data.sessionId}</p><img src="${data.qr}" />`;
+  document.getElementById("qrMsg").innerText = "QR Code Generated! Students can scan now.";
+}
+
+async function loadAttendance() {
+  if(!currentSessionId) return;
+
+  const res = await fetch(`http://localhost:3000/attendance/${currentSessionId}`);
+  const data = await res.json();
+
+  document.getElementById("count").innerText = `Total Present: ${data.length}`;
+  const tbody = document.getElementById("attendanceList");
+  tbody.innerHTML = "";
+  data.forEach((s,i)=>{
+    const row = `<tr><td>${i+1}</td><td>${s.student}</td><td>${s.time}</td></tr>`;
+    tbody.innerHTML += row;
+  });
+}
+
+setInterval(loadAttendance, 2000);
+</script>
+
+</body>
+</html>

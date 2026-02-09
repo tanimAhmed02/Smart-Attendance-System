@@ -3,62 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student Attendance Scan</title>
+  <title>Student QR Scan</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to right, #eef2ff, #f8fafc);
-      text-align: center;
-      padding: 40px;
-    }
-    .card {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      max-width: 400px;
-      margin: auto;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    }
-    #reader {
-     width: 350px;
-     max-width: 90%;
-     margin: auto;
-    }   
-    #result {
-      margin-top: 15px;
-      font-size: 16px;
-      font-weight: bold;
-      color: green;
-    }
+    body { font-family:'Segoe UI', sans-serif; background:#f4f6f9; text-align:center; padding:50px; margin:0; }
+    .scan-card { background:white; max-width:400px; margin:auto; padding:30px; border-radius:15px; box-shadow:0 10px 25px rgba(0,0,0,0.2); }
+    #reader { border:3px dashed #2563eb; border-radius:15px; padding:10px; margin-top:20px; }
+    p#resultMsg { font-weight:bold; margin-top:20px; font-size:16px; }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <h2>Scan Attendance QR</h2>
-    <div id="reader"></div>
-    <p id="result"></p>
-  </div>
+<div class="scan-card">
+  <h2>Scan Attendance QR</h2>
+  <div id="reader"></div>
+  <p id="resultMsg">Waiting for scan...</p>
+</div>
 
 <script>
 function onScanSuccess(decodedText) {
   fetch("http://localhost:3000/scan", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      sessionId: decodedText,
-      student: "student1"
-    })
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ sessionId: decodedText, student: "student1" })
   })
   .then(res => res.json())
   .then(data => {
-    document.getElementById("result").innerText = data.message;
+    document.getElementById("resultMsg").innerText = data.message;
+  })
+  .catch(()=> {
+    document.getElementById("resultMsg").innerText = "Error scanning QR.";
   });
 }
 
-new Html5QrcodeScanner("reader", { fps: 10, qrbox: 230 })
-  .render(onScanSuccess);
+new Html5QrcodeScanner("reader", { fps:10, qrbox:250 }).render(onScanSuccess);
 </script>
 
 </body>

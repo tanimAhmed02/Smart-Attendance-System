@@ -5,17 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Smart Attendance - Login</title>
   <style>
-    body { font-family: Arial; background:#f4f6f9; display:flex; justify-content:center; align-items:center; height:100vh;}
-    .box { background:white; padding:30px; border-radius:10px; width:320px; text-align:center; box-shadow:0 0 10px rgba(0,0,0,0.1);}
-    input, select, button { width:100%; padding:10px; margin:10px 0; }
-    button { background:#2563eb; color:white; border:none; border-radius:5px; font-size:16px;}
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #2563eb, #4f46e5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .box {
+      background: white;
+      padding: 40px;
+      border-radius: 15px;
+      width: 350px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    h2 { margin-bottom: 25px; color:#111; }
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      margin: 12px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover { background: #1d4ed8; }
   </style>
 </head>
 <body>
 
 <div class="box">
   <h2>Smart Attendance Login</h2>
-  <input type="email" id="email" placeholder="Email">
+  <input type="email" id="email" placeholder="Enter your email">
   <label for="role">Select Your Role</label>
   <select id="role">
     <option value="student">Student</option>
@@ -25,7 +55,7 @@
 </div>
 
 <script>
-function login(){
+function login() {
   const role = document.getElementById("role").value;
   if(role === "instructor") window.location.href="instructor.html";
   else window.location.href="student.html";
